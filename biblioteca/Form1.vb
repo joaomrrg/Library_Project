@@ -1,6 +1,12 @@
 ﻿Imports System.IO
+Imports System.Windows
+Imports System.Windows.Forms.VisualStyles.VisualStyleElement.ToolBar
 
 Public Class Form1
+
+    Private form3 As Form3
+
+
     Dim filePath As String = "biblioteca.txt"
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -69,21 +75,17 @@ Public Class Form1
     End Sub
 
     Private Sub Button_check_Click(sender As Object, e As EventArgs) Handles Button_check.Click
-        ' Certificar-se de que há pelo menos um item selecionado
+        ' ... (previous code remains unchanged)
+
         If ListaLivros.SelectedItems.Count > 0 Then
-            ' Obter o item selecionado
             Dim livroSelecionado As ListViewItem = ListaLivros.SelectedItems(0)
 
             ' Verificar se o livro está disponível para empréstimo
             If livroSelecionado.SubItems(4).Text = "Disponível" Then
-                ' Atualizar os subitens para simular o Check-Out
-                livroSelecionado.SubItems(4).Text = "Emprestado"
-                livroSelecionado.SubItems(5).Text = DateTime.Now.AddDays(14).ToString("dd/MM/yyyy")
+                ' Open Form3 for checkout details
+                Dim formAdicionar As New Form3(Me, 0)
+                formAdicionar.ShowDialog()
 
-                ' Salvar os dados após a atualização
-                GuardarDados()
-
-                MessageBox.Show("Livro emprestado com sucesso!")
             Else
                 MessageBox.Show("Livro não disponível para empréstimo.")
             End If
@@ -119,13 +121,10 @@ Public Class Form1
     End Sub
 
     Private Sub Button_renova_Click(sender As Object, e As EventArgs) Handles Button_renova.Click
-        ' Simulação de Renovação
-        If ListaLivros.SelectedItems.Count > 0 AndAlso ListaLivros.SelectedItems(0).SubItems(1).Text = "Empréstimo" Then
-            ListaLivros.SelectedItems(0).SubItems(2).Text = DateTime.Now.AddDays(14).ToString("dd/MM/yyyy")
-            GuardarDados()
-            MessageBox.Show("Renovação bem-sucedida!")
-        Else
-            MessageBox.Show("Não é possível renovar o livro no momento.")
+        If ListaLivros.SelectedItems.Count > 0 Then
+            Dim selectedBookID As String = ListaLivros.SelectedItems(0).SubItems(2).Text
+            Dim formMostrarCliente As New Form3(Me, selectedBookID)
+            formMostrarCliente.ShowDialog()
         End If
     End Sub
 
@@ -159,6 +158,17 @@ Public Class Form1
             MessageBox.Show("Selecione um livro para remover.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End If
     End Sub
+
+    Private Sub ListaLivros_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles ListaLivros.MouseDoubleClick
+        If ListaLivros.SelectedItems.Count > 0 AndAlso ListaLivros.SelectedItems(0).SubItems(4).Text = "Emprestado" Then
+            Dim selectedBookID As String = ListaLivros.SelectedItems(0).SubItems(2).Text
+            Dim formMostrarCliente As New Form4(selectedBookID)
+            formMostrarCliente.ShowDialog()
+        Else
+            MessageBox.Show("Livro não Emprestado.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        End If
+    End Sub
+
 
     Private Sub FiltrarLivros(pesquisa As String)
         ' Limpar a lista de livros

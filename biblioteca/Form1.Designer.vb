@@ -33,6 +33,7 @@ Partial Class Form1
         Button_remover = New Button()
         ImageListLivros = New ImageList(components)
         ListaLivros = New ListView()
+        button_info = New Button()
         SuspendLayout()
         ' 
         ' Button_check
@@ -94,7 +95,7 @@ Partial Class Form1
         ' 
         ' Button_procurar
         ' 
-        Button_procurar.Location = New Point(874, 32)
+        Button_procurar.Location = New Point(874, 30)
         Button_procurar.Margin = New Padding(3, 4, 3, 4)
         Button_procurar.Name = "Button_procurar"
         Button_procurar.Size = New Size(107, 31)
@@ -132,11 +133,21 @@ Partial Class Form1
         ListaLivros.UseCompatibleStateImageBehavior = False
         ListaLivros.View = View.Details
         ' 
+        ' button_info
+        ' 
+        button_info.Location = New Point(534, 463)
+        button_info.Name = "button_info"
+        button_info.Size = New Size(105, 29)
+        button_info.TabIndex = 12
+        button_info.Text = "Informações"
+        button_info.UseVisualStyleBackColor = True
+        ' 
         ' Form1
         ' 
         AutoScaleDimensions = New SizeF(8.0F, 20.0F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1031, 528)
+        Controls.Add(button_info)
         Controls.Add(ListaLivros)
         Controls.Add(Button_remover)
         Controls.Add(Button_procurar)
@@ -163,4 +174,5 @@ Partial Class Form1
     Friend WithEvents Button_remover As Button
     Friend WithEvents ImageListLivros As ImageList
     Friend WithEvents ListaLivros As ListView
+    Friend WithEvents button_info As Button
 End Class

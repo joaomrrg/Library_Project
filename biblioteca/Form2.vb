@@ -19,6 +19,7 @@
 
         ' Salvar dados após a adição
         mainForm.GuardarDados()
+        mainForm.CreateBookRecordFile()
 
         ' Fechar o formulário de adição
         Me.Close()

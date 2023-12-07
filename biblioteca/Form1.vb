@@ -1,4 +1,6 @@
-﻿Imports System.IO
+﻿Imports System.Diagnostics.Eventing
+Imports System.IO
+Imports System.Net
 Imports System.Windows
 Imports System.Windows.Forms.VisualStyles.VisualStyleElement.ToolBar
 
@@ -24,8 +26,8 @@ Public Class Form1
         ListaLivros.Columns.Add("Autor", 150)
         ListaLivros.Columns.Add("ID", 50)
         ListaLivros.Columns.Add("Ano", 50)
-        ListaLivros.Columns.Add("Estado", 80)
-        ListaLivros.Columns.Add("Data de Devolução", 100)
+        ListaLivros.Columns.Add("Estado", 100)
+        ListaLivros.Columns.Add("Data de Devolução", 150)
     End Sub
 
     Private Sub CarregarDados()
@@ -64,6 +66,8 @@ Public Class Form1
     End Sub
 
     Public Sub GuardarDados()
+        Dim can As Boolean = True
+        Dim id As String
         ' Salvar dados da ListaLivros no arquivo
         Using writer As New StreamWriter(filePath)
             For Each livro As ListViewItem In ListaLivros.Items
@@ -71,6 +75,50 @@ Public Class Form1
                 Dim dadosLivro As String = String.Join(" | ", livro.SubItems.Cast(Of ListViewItem.ListViewSubItem).Select(Function(subitem) subitem.Text))
                 writer.WriteLine(dadosLivro)
             Next
+        End Using
+
+    End Sub
+
+    Public Sub CreateBookRecordFile()
+        Dim bookRecordsFilePath As String = "book_records.txt"
+        Dim recordedIDs As New HashSet(Of String)()
+
+        ' Check if the book record file already exists
+        If Not File.Exists(bookRecordsFilePath) Then
+            File.Create(bookRecordsFilePath).Dispose()
+        End If
+
+        ' Read existing book records to avoid duplicates
+        Using reader As New StreamReader(bookRecordsFilePath)
+            While Not reader.EndOfStream
+                Dim line As String = reader.ReadLine()
+                Dim parts As String() = line.Split("|"c)
+                If parts.Length >= 6 Then
+                    ' Store IDs in the HashSet to avoid duplicates
+                    recordedIDs.Add(parts(2).Trim())
+                End If
+            End While
+        End Using
+
+        ' Append new book records without duplicates
+        Using writer As New StreamWriter(bookRecordsFilePath, True)
+            If File.Exists(filePath) Then
+                Using reader As New StreamReader(filePath)
+                    While Not reader.EndOfStream
+                        Dim line As String = reader.ReadLine()
+                        Dim parts As String() = line.Split("|"c)
+                        If parts.Length >= 6 Then
+                            Dim bookID As String = parts(2).Trim()
+
+                            ' Check if the book's ID is not already recorded
+                            If Not recordedIDs.Contains(bookID) Then
+                                writer.WriteLine(line)
+                                recordedIDs.Add(bookID) ' Add the new ID to the recorded list
+                            End If
+                        End If
+                    End While
+                End Using
+            End If
         End Using
     End Sub
 
@@ -125,6 +173,8 @@ Public Class Form1
             Dim selectedBookID As String = ListaLivros.SelectedItems(0).SubItems(2).Text
             Dim formMostrarCliente As New Form3(Me, selectedBookID)
             formMostrarCliente.ShowDialog()
+        Else
+            MessageBox.Show("Selecione um livro para renovar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End If
     End Sub
 
@@ -144,15 +194,21 @@ Public Class Form1
             ' Obter o item selecionado
             Dim livroSelecionado As ListViewItem = ListaLivros.SelectedItems(0)
 
-            ' Perguntar ao usuário se ele realmente deseja remover o livro
-            Dim resultado As DialogResult = MessageBox.Show("Tem certeza de que deseja remover este livro?", "Confirmação", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+            If livroSelecionado.SubItems(4).Text = "Disponível" Then
 
-            If resultado = DialogResult.Yes Then
-                ' Remover o item da ListaLivros
-                ListaLivros.Items.Remove(livroSelecionado)
+                ' Perguntar ao usuário se ele realmente deseja remover o livro
+                Dim resultado As DialogResult = MessageBox.Show("Tem certeza de que deseja remover este livro?", "Confirmação", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
 
-                ' Salvar os dados após a remoção
-                GuardarDados()
+                If resultado = DialogResult.Yes Then
+                    ' Remover o item da ListaLivros
+                    ListaLivros.Items.Remove(livroSelecionado)
+
+                    ' Salvar os dados após a remoção
+                    GuardarDados()
+                End If
+
+            Else
+                MessageBox.Show("Livro atualmente emprestado.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             End If
         Else
             MessageBox.Show("Selecione um livro para remover.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning)
@@ -196,4 +252,8 @@ Public Class Form1
         End Using
     End Sub
 
+    Private Sub button_info_Click(sender As Object, e As EventArgs) Handles button_info.Click
+        Dim formAdicionar As New Form5(Me)
+        formAdicionar.ShowDialog()
+    End Sub
 End Class
